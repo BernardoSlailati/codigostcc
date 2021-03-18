@@ -22,6 +22,7 @@ class BDProprietario:
                 c.execute("""CREATE TABLE IF NOT EXISTS proprietarios (
                              id integer PRIMARY KEY autoincrement,
                              nome text,
+                             cpf text,
                              telefone text,
                              apartamento text,
                              visitante text

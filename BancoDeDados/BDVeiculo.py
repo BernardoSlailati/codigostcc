@@ -19,13 +19,14 @@ class BDVeiculo():
             c = self.conexao.cursor()
 
             c.execute("""create table if not exists veiculos (
-                         idveiculo integer primary key autoincrement ,
+                         id integer primary key autoincrement,
                          tipo text,
                          cor text,
                          marca text,
                          modelo text,
-                         cpf_proprietario text,
-                         ano text);""")
+                         ano text,
+                         placa text,
+                         cpf_proprietario text);""")
             self.conexao.commit()
             c.close()
 
