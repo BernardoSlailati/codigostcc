@@ -31,13 +31,13 @@ for filename in sorted(filenames):
     # um váriavel de texto contendo os caracteres concatenados
     placa = imread(IMAGENS_DIR + filename, CV_8UC1)
 
-    placaProcessada = blur(placa, (9, 9), 3)
-    placaProcessada = adaptiveThreshold(placaProcessada, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 75, 10)
+    # placaProcessada = blur(placa, (9, 9), 3)
+    # placaProcessada = adaptiveThreshold(placaProcessada, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 75, 10)
+    #
+    # imshow("placaProcessada", placaProcessada)
+    # waitKey(0)
 
-    imshow("placaProcessada", placaProcessada)
-    waitKey(0)
-
-    caracteres = pytess.image_to_string(placaProcessada, lang='eng')
+    caracteres = pytess.image_to_string(placa, lang='man')
 
     # Printar no terminal o nome do arquivo juntamente aos caracteres reconhecidos (ex. '001.jpg: SIA-0231')
     print(filename + ": " + caracteres)

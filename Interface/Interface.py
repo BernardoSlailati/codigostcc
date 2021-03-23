@@ -4,22 +4,25 @@
 # principal do software a ser desenvolvido.
 
 # Importação das bibliotecas necessárias
+
+from BancoDeDados import Proprietario, Veiculo, Entrada
+from cv2 import *
+from PIL import Image, ImageTk
+from datetime import datetime
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
-from PIL import Image, ImageTk
-from cv2 import *
-from BancoDeDados import Proprietario, Veiculo
 
 
 class Interface:
     # Construtor contendo como parâmetro o objeto de interface
-    # disponibilidado pela biblioteca Tkinter
+    # disponibilizado pela biblioteca Tkinter
     def __init__(self, master=None):
         self.master = master
 
         self.proprietario_modificar = None
         self.veiculo_modificar = None
+        self.entrada_modificar = None
 
         # Determinar fonte padrão a ser utilizada nos textos
         self.fontePadrao = ("Comic Sans MS", "12")
@@ -39,6 +42,7 @@ class Interface:
 
         self.buscar_todos_proprietarios()
         self.buscar_todos_veiculos()
+        self.buscar_todas_entradas()
 
     def criar_tab_1(self):
         self.tabControl.add(self.tab1, text='Gerenciamento de Entradas')
@@ -251,12 +255,14 @@ class Interface:
                                         variable=self.visitante, value=0)
         self.simVisitante["width"] = 25
         self.simVisitante["font"] = self.fontePadrao
+        self.simVisitante.config(state=DISABLED)
         self.simVisitante.pack()
 
         self.naoVisitante = Radiobutton(self.frameTopTab1, text="SIM",
                                         variable=self.visitante, value=1)
         self.naoVisitante["width"] = 25
         self.naoVisitante["font"] = self.fontePadrao
+        self.naoVisitante.config(state=DISABLED)
         self.naoVisitante.pack()
 
         # ---------------------------------------------------------------
@@ -277,14 +283,12 @@ class Interface:
         self.quadroRegistros.heading('#3', text='Visitante', anchor=CENTER)
         self.quadroRegistros.heading('#4', text='Placa', anchor=CENTER)
 
-        self.quadroRegistros.column('#0', stretch=YES, anchor=CENTER)
-        self.quadroRegistros.column('#1', stretch=YES, anchor=CENTER)
-        self.quadroRegistros.column('#2', stretch=YES, anchor=CENTER)
-        self.quadroRegistros.column('#3', stretch=YES, anchor=CENTER)
-        self.quadroRegistros.column('#4', stretch=YES, anchor=CENTER)
+        self.quadroRegistros.column('#0', minwidth=75, width=150, stretch=NO, anchor=CENTER)
+        self.quadroRegistros.column('#1', minwidth=125, width=225, stretch=NO, anchor=CENTER)
+        self.quadroRegistros.column('#2', minwidth=75, width=175, stretch=NO, anchor=CENTER)
+        self.quadroRegistros.column('#3', minwidth=50, width=75, stretch=NO, anchor=CENTER)
+        self.quadroRegistros.column('#4', minwidth=75, width=150, stretch=NO, anchor=CENTER)
 
-        self.quadroRegistros.insert('', END, text="19-10-20 22:14",
-                                    values=("Bernardo M Slailati", "Ford Ka", "NÃO", "ABC-123"))
         self.quadroRegistros.pack()
 
     def criar_tab_2(self):
@@ -530,9 +534,10 @@ class Interface:
         self.alterarProprietarioPesquisarPorLabel.pack()
 
         todos_pesquisar_por_proprietario = [
+            "Apartamento",
             "Nome",
             "CPF",
-            "Apartamento"
+            "ID",
         ]
 
         self.pequisar_por_proprietario = StringVar()
@@ -641,7 +646,8 @@ class Interface:
 
         todos_pesquisar_por_veiculo = [
             "Placa",
-            "CPF Proprietário"
+            "CPF Proprietário",
+            "ID"
         ]
 
         self.pesquisar_por_veiculo = StringVar()
@@ -732,7 +738,7 @@ class Interface:
         self.alterarVeiculoCpfProprietario.pack(padx=10, pady=10)
 
         self.alterarVeiculoConfirmar = Button(self.frameRightTab3, padx=10, pady=10, bg='green', fg='white')
-        self.alterarVeiculoConfirmar["text"] = "ALTERAR PROPRIETÁRIO"
+        self.alterarVeiculoConfirmar["text"] = "ALTERAR VEÍCULO"
         self.alterarVeiculoConfirmar["font"] = ("Comics Sans MS", "8", "bold")
         self.alterarVeiculoConfirmar["width"] = 24
         self.alterarVeiculoConfirmar["command"] = self.alterar_veiculo
@@ -758,31 +764,34 @@ class Interface:
         self.registrosTitulo.pack()
 
         self.registrosQuadroRegistros = ttk.Treeview(self.frameTopTab4,
-                                                     columns=("Data e Hora",
+                                                     columns=("ID",
+                                                              "Data e Hora",
                                                               "Proprietário",
                                                               "Veículo", "Visitante",
                                                               "Placa"))
-        self.registrosQuadroRegistros.heading('#0', text='Data e Hora', anchor=CENTER)
-        self.registrosQuadroRegistros.heading('#1', text='Proprietário', anchor=CENTER)
-        self.registrosQuadroRegistros.heading('#2', text='Veículo', anchor=CENTER)
-        self.registrosQuadroRegistros.heading('#3', text='Visitante', anchor=CENTER)
-        self.registrosQuadroRegistros.heading('#4', text='Placa', anchor=CENTER)
+        self.registrosQuadroRegistros.heading('#0', text='ID', anchor=CENTER)
+        self.registrosQuadroRegistros.heading('#1', text='Data e Hora', anchor=CENTER)
+        self.registrosQuadroRegistros.heading('#2', text='Proprietário', anchor=CENTER)
+        self.registrosQuadroRegistros.heading('#3', text='Veículo', anchor=CENTER)
+        self.registrosQuadroRegistros.heading('#4', text='Visitante', anchor=CENTER)
+        self.registrosQuadroRegistros.heading('#5', text='Placa', anchor=CENTER)
 
-        self.registrosQuadroRegistros.column('#0', stretch=YES, anchor=CENTER)
-        self.registrosQuadroRegistros.column('#1', stretch=YES, anchor=CENTER)
-        self.registrosQuadroRegistros.column('#2', stretch=YES, anchor=CENTER)
-        self.registrosQuadroRegistros.column('#3', stretch=YES, anchor=CENTER)
-        self.registrosQuadroRegistros.column('#4', stretch=YES, anchor=CENTER)
+        self.registrosQuadroRegistros.column('#0', minwidth=20, width=50, stretch=NO, anchor=CENTER)
+        self.registrosQuadroRegistros.column('#1', minwidth=120, width=150, stretch=NO, anchor=CENTER)
+        self.registrosQuadroRegistros.column('#2', minwidth=175, width=275, stretch=NO, anchor=CENTER)
+        self.registrosQuadroRegistros.column('#3', minwidth=175, width=275, stretch=NO, anchor=CENTER)
+        self.registrosQuadroRegistros.column('#4', minwidth=75, width=100, stretch=NO, anchor=CENTER)
+        self.registrosQuadroRegistros.column('#5', minwidth=75, width=100, stretch=NO, anchor=CENTER)
 
-        self.registrosQuadroRegistros.insert('', END, text="19-10-20 22:14",
-                                             values=("Bernardo M Slailati", "Ford Ka", "NÃO", "ABC-123"))
+        self.registrosQuadroRegistros.bind("<Delete>", self.deletar_entrada)
+
         self.registrosQuadroRegistros.pack()
 
         self.registrosAtualizar = Button(self.frameTopTab4, padx=10, pady=10, bg='blue', fg='white')
         self.registrosAtualizar["text"] = "ATUALIZAR"
         self.registrosAtualizar["font"] = ("Comics Sans MS", "8", "bold")
         self.registrosAtualizar["width"] = 24
-        self.registrosAtualizar["command"] = self.cadastrar_proprietario
+        self.registrosAtualizar["command"] = self.buscar_todas_entradas
         self.registrosAtualizar.pack()
 
     def criar_tab_5(self):
@@ -817,12 +826,12 @@ class Interface:
         self.proprietariosQuadroRegistros.heading('#4', text='Apartamento', anchor=CENTER)
         self.proprietariosQuadroRegistros.heading('#5', text='Visitante', anchor=CENTER)
 
-        self.proprietariosQuadroRegistros.column('#0', stretch=YES, anchor=CENTER)
-        self.proprietariosQuadroRegistros.column('#1', stretch=YES, anchor=CENTER)
-        self.proprietariosQuadroRegistros.column('#2', stretch=YES, anchor=CENTER)
-        self.proprietariosQuadroRegistros.column('#3', stretch=YES, anchor=CENTER)
-        self.proprietariosQuadroRegistros.column('#4', stretch=YES, anchor=CENTER)
-        self.proprietariosQuadroRegistros.column('#5', stretch=YES, anchor=CENTER)
+        self.proprietariosQuadroRegistros.column('#0', minwidth=20, width=50, stretch=NO, anchor=CENTER)
+        self.proprietariosQuadroRegistros.column('#1', minwidth=175, width=275, stretch=NO, anchor=CENTER)
+        self.proprietariosQuadroRegistros.column('#2', minwidth=120, width=150, stretch=NO, anchor=CENTER)
+        self.proprietariosQuadroRegistros.column('#3', minwidth=75, width=120, stretch=NO, anchor=CENTER)
+        self.proprietariosQuadroRegistros.column('#4', minwidth=75, width=120, stretch=NO, anchor=CENTER)
+        self.proprietariosQuadroRegistros.column('#5', minwidth=75, width=120, stretch=NO, anchor=CENTER)
 
         self.proprietariosQuadroRegistros.pack()
 
@@ -841,7 +850,8 @@ class Interface:
         self.veiculosTitulo.pack()
 
         self.veiculosQuadroRegistros = ttk.Treeview(self.frameBottomTab5, columns=['ID', 'Tipo', 'Marca', 'Modelo',
-                                                                                   'Ano', 'Cor', 'Placa', 'CPF Proprietário'])
+                                                                                   'Ano', 'Cor', 'Placa',
+                                                                                   'CPF Proprietário'])
 
         self.veiculosQuadroRegistros.heading('#0', text='ID', anchor=CENTER)
         self.veiculosQuadroRegistros.heading('#1', text='Tipo', anchor=CENTER)
@@ -852,14 +862,14 @@ class Interface:
         self.veiculosQuadroRegistros.heading('#6', text='Placa', anchor=CENTER)
         self.veiculosQuadroRegistros.heading('#7', text='CPF Proprietário', anchor=CENTER)
 
-        self.veiculosQuadroRegistros.column('#0', stretch=YES, anchor=CENTER)
-        self.veiculosQuadroRegistros.column('#1', stretch=YES, anchor=CENTER)
-        self.veiculosQuadroRegistros.column('#2', stretch=YES, anchor=CENTER)
-        self.veiculosQuadroRegistros.column('#3', stretch=YES, anchor=CENTER)
-        self.veiculosQuadroRegistros.column('#4', stretch=YES, anchor=CENTER)
-        self.veiculosQuadroRegistros.column('#5', stretch=YES, anchor=CENTER)
-        self.veiculosQuadroRegistros.column('#6', stretch=YES, anchor=CENTER)
-        self.veiculosQuadroRegistros.column('#7', stretch=YES, anchor=CENTER)
+        self.veiculosQuadroRegistros.column('#0', minwidth=20, width=50, stretch=NO, anchor=CENTER)
+        self.veiculosQuadroRegistros.column('#1', minwidth=75, width=120, stretch=NO, anchor=CENTER)
+        self.veiculosQuadroRegistros.column('#2', minwidth=150, width=220, stretch=NO,  anchor=CENTER)
+        self.veiculosQuadroRegistros.column('#3', minwidth=150, width=220, stretch=NO,  anchor=CENTER)
+        self.veiculosQuadroRegistros.column('#4', minwidth=75, width=120, stretch=NO, anchor=CENTER)
+        self.veiculosQuadroRegistros.column('#5', minwidth=75, width=120, stretch=NO, anchor=CENTER)
+        self.veiculosQuadroRegistros.column('#6', minwidth=75, width=120, stretch=NO, anchor=CENTER)
+        self.veiculosQuadroRegistros.column('#7', minwidth=150, width=220, stretch=NO, anchor=CENTER)
 
         self.veiculosQuadroRegistros.pack()
 
@@ -870,7 +880,32 @@ class Interface:
         self.veiculosAtualizar["command"] = self.buscar_todos_veiculos
         self.veiculosAtualizar.pack()
 
-    # Vuscar todos proprietários
+    def deletar_entrada(self, event=None):
+        global linha
+
+        try:
+            if len(self.registrosQuadroRegistros.selection()) != 0:
+                linha = self.registrosQuadroRegistros.selection()
+                entrada = self.registrosQuadroRegistros.item(linha)
+
+                resposta = messagebox.askyesno("Deletar Entrada",
+                                               "Deseja realmente deletar essa entrada? Ao ser excluída nunca mais "
+                                               "poderá ser recuperada.")
+                if resposta:
+                    idEntrada = entrada["text"]
+                    resposta = Entrada.Entrada().deletar(idEntrada)
+
+                    if "sucesso" in resposta:
+                        messagebox.showinfo("Sucesso", resposta)
+                    else:
+                        messagebox.showerror("Falha ao deletar", resposta)
+
+                else:
+                    messagebox.showerror("Cancelado", "Cancelada exclusão de entrada!")
+        except:
+            messagebox.showwarning("Necessário escolher uma entrada", "Escolha uma entrada a ser deletada.")
+
+    # Buscar todos proprietários
     def buscar_todos_proprietarios(self):
         proprietario = Proprietario.Proprietario()
 
@@ -878,6 +913,7 @@ class Interface:
 
         self.proprietariosQuadroRegistros.delete(*self.proprietariosQuadroRegistros.get_children())
         for proprietario in resposta:
+
             self.proprietariosQuadroRegistros.insert('', END, text=str(proprietario.idproprietario),
                                                      values=(
                                                          proprietario.nome,
@@ -905,6 +941,39 @@ class Interface:
                                                     veiculo.placa,
                                                     veiculo.cpf_proprietario,
                                                 ))
+
+    # Buscar todos proprietários
+    def buscar_todas_entradas(self):
+        entrada = Entrada.Entrada()
+
+        resposta = entrada.buscarTodos()
+
+        self.registrosQuadroRegistros.delete(*self.registrosQuadroRegistros.get_children())
+        self.quadroRegistros.delete(*self.quadroRegistros.get_children())
+
+        i = 0
+        for entrada in resposta:
+            self.registrosQuadroRegistros.insert('', END, text=entrada.idEntrada,
+                                                 values=(
+                                                     datetime.strftime(datetime.strptime(entrada.data_hora, "%Y-%m-%d "
+                                                                                         "%H:%M:%S.%f"),
+                                                                       "%Y-%m-%d %H:%M:%S"),
+                                                     entrada.proprietario,
+                                                     entrada.veiculo,
+                                                     entrada.visitante,
+                                                     entrada.placa
+                                                 ))
+            if i < 5:
+                self.quadroRegistros.insert('', END, text=datetime.strftime(datetime.strptime(entrada.data_hora,
+                                                                                              "%Y-%m-%d %H:%M:%S.%f"),
+                                                                            "%Y-%m-%d %H:%M:%S"),
+                                            values=(
+                                                entrada.proprietario,
+                                                entrada.veiculo,
+                                                entrada.visitante,
+                                                entrada.placa
+                                            ))
+            i += 1
 
     # Inserir proprietário
     def cadastrar_proprietario(self):
@@ -1049,11 +1118,66 @@ class Interface:
 
     # Aterar proprietário
     def alterar_proprietario(self):
-        proprietario = Proprietario.Proprietario()
+        if self.proprietario_modificar is not None:
+            self.proprietario_modificar.nome = self.alterarProprietarioNome.get()
+            self.proprietario_modificar.cpf = self.alterarProprietarioCpf.get()
+            self.proprietario_modificar.telefone = self.alterarProprietarioTelefone.get()
+            self.proprietario_modificar.apartamento = self.alterarProprietarioApartamento.get()
+            self.proprietario_modificar.visitante = self.alterarProprietarioVisitante.get().upper()
+
+            resposta = self.proprietario_modificar.atualizar()
+
+            if "sucesso" in resposta:
+                messagebox.showinfo("Sucesso", resposta)
+
+                self.proprietario_modificar = None
+
+                self.alterarProprietarioNome.delete(0, 'end')
+                self.alterarProprietarioCpf.delete(0, 'end')
+                self.alterarProprietarioTelefone.delete(0, 'end')
+                self.alterarProprietarioApartamento.delete(0, 'end')
+                self.alterarProprietarioVisitante.delete(0, 'end')
+
+                self.atualizar_cpfs()
+                self.buscar_todos_proprietarios()
+
+            else:
+                messagebox.showerror("Falha", resposta)
+        else:
+            messagebox.showwarning("Nenhum proprietário selecionado",
+                                   "Pesquise um proprietário válido para ser alterado.")
 
     # Alterar  veículo
     def alterar_veiculo(self):
-        veiculo = Veiculo.Veiculo()
+        if self.veiculo_modificar is not None:
+            self.veiculo_modificar.tipo = self.alterarVeiculoTipo.get()
+            self.veiculo_modificar.cor = self.alterarVeiculoCor.get()
+            self.veiculo_modificar.marca = self.alterarVeiculoMarca.get()
+            self.veiculo_modificar.modelo = self.alterarVeiculoModelo.get()
+            self.veiculo_modificar.ano = self.alterarVeiculoAno.get()
+            self.veiculo_modificar.placa = self.alterarVeiculoPlaca.get()
+
+            resposta = self.veiculo_modificar.atualizar()
+
+            if "sucesso" in resposta:
+                messagebox.showinfo("Sucesso", resposta)
+
+                self.veiculo_modificar = None
+
+                self.alterarVeiculoTipo.delete(0, 'end')
+                self.alterarVeiculoCor.delete(0, 'end')
+                self.alterarVeiculoMarca.delete(0, 'end')
+                self.alterarVeiculoModelo.delete(0, 'end')
+                self.alterarVeiculoAno.delete(0, 'end')
+                self.alterarVeiculoPlaca.delete(0, 'end')
+
+                self.buscar_todos_veiculos()
+
+            else:
+                messagebox.showerror("Falha", resposta)
+        else:
+            messagebox.showwarning("Nenhum veículo selecionado",
+                                   "Pesquise um veículo válido para ser alterado.")
 
     # Deletar proprietário
     def deletar_proprietario(self):
@@ -1110,10 +1234,118 @@ class Interface:
 
     # Função a ser criada, iniciada após o clique do botão 'Localizar'
     def localizar_placa(self):
-        self.cpf.config(state=NORMAL)
-        self.cpf.delete(0, END)
-        self.cpf.insert(0, "07253441648")
-        self.cpf.config(state=DISABLED)
+        placa = self.letras.get() + "-" + self.numeros.get()
+        veiculo = Veiculo.Veiculo().pesquisar("Placa", placa)
+
+        if veiculo.idveiculo > 0:
+            proprietario = Proprietario.Proprietario().pesquisar("CPF", veiculo.cpf_proprietario)
+
+            # Preencher proprietário
+            self.cpf.config(state=NORMAL)
+            self.cpf.delete(0, END)
+            self.cpf.insert(0, proprietario.cpf)
+            self.cpf.config(state=DISABLED)
+
+            self.nome.config(state=NORMAL)
+            self.nome.delete(0, END)
+            self.nome.insert(0, proprietario.nome)
+            self.nome.config(state=DISABLED)
+
+            self.telefone.config(state=NORMAL)
+            self.telefone.delete(0, END)
+            self.telefone.insert(0, proprietario.telefone)
+            self.telefone.config(state=DISABLED)
+
+            self.apartamento.config(state=NORMAL)
+            self.apartamento.delete(0, END)
+            self.apartamento.insert(0, proprietario.apartamento)
+            self.apartamento.config(state=DISABLED)
+
+            self.naoVisitante.config(state=NORMAL)
+            self.simVisitante.config(state=NORMAL)
+            if proprietario.visitante == "SIM":
+                self.visitante.set(1)
+            elif proprietario.visitante == "NÃO":
+                self.visitante.set(0)
+            self.naoVisitante.config(state=DISABLED)
+            self.simVisitante.config(state=DISABLED)
+
+            # Preencher proprietário
+            self.cpf.config(state=NORMAL)
+            self.cpf.delete(0, END)
+            self.cpf.insert(0, proprietario.cpf)
+            self.cpf.config(state=DISABLED)
+
+            self.nome.config(state=NORMAL)
+            self.nome.delete(0, END)
+            self.nome.insert(0, proprietario.nome)
+            self.nome.config(state=DISABLED)
+
+            self.telefone.config(state=NORMAL)
+            self.telefone.delete(0, END)
+            self.telefone.insert(0, proprietario.telefone)
+            self.telefone.config(state=DISABLED)
+
+            self.apartamento.config(state=NORMAL)
+            self.apartamento.delete(0, END)
+            self.apartamento.insert(0, proprietario.apartamento)
+            self.apartamento.config(state=DISABLED)
+
+            if proprietario.visitante == "SIM":
+                self.visitante.set(1)
+            elif proprietario.visitante == "NÃO":
+                self.visitante.set(0)
+
+            # Preencher veículo
+            self.tipo.config(state=NORMAL)
+            self.tipo.delete(0, END)
+            self.tipo.insert(0, veiculo.tipo)
+            self.tipo.config(state=DISABLED)
+
+            self.cor.config(state=NORMAL)
+            self.cor.delete(0, END)
+            self.cor.insert(0, veiculo.cor)
+            self.cor.config(state=DISABLED)
+
+            self.marca.config(state=NORMAL)
+            self.marca.delete(0, END)
+            self.marca.insert(0, veiculo.marca)
+            self.marca.config(state=DISABLED)
+
+            self.modelo.config(state=NORMAL)
+            self.modelo.delete(0, END)
+            self.modelo.insert(0, veiculo.modelo)
+            self.modelo.config(state=DISABLED)
+
+            self.ano.config(state=NORMAL)
+            self.ano.delete(0, END)
+            self.ano.insert(0, veiculo.ano)
+            self.ano.config(state=DISABLED)
+
+            self.placa.config(state=NORMAL)
+            self.placa.delete(0, END)
+            self.placa.insert(0, veiculo.placa)
+            self.placa.config(state=DISABLED)
+
+            cadastrar_entrada = messagebox.askyesno("Veículo Encontrado!", "Deseja inserir entrada?")
+            if cadastrar_entrada:
+                entrada = Entrada.Entrada(
+                    0,
+                    str(datetime.now()),
+                    proprietario.nome + ", " + proprietario.cpf,
+                    veiculo.marca + " " + veiculo.modelo + ", " + veiculo.cor,
+                    proprietario.visitante,
+                    veiculo.placa
+                )
+                entrada.inserir()
+
+                self.buscar_todas_entradas()
+
+                messagebox.showinfo("Sucesso", "Entrada cadastrada.")
+            else:
+                messagebox.showerror("Cancelado", "Entrada não cadastrada.")
+        else:
+            messagebox.showerror("Veículo não encontrado", "Placa '" + placa + "' não está vinculada a nenhum veículo.")
 
 
 # Inicialização da interface gráfica principal da janela desenvolvida

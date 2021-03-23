@@ -49,9 +49,9 @@ class Proprietario:
             c = banco.conexao.cursor()
 
             c.execute(
-                "update usuarios set nome = '" + self.nome + "', cpf = '" + self.cpf + "' telefone = '" +
+                "update proprietarios set nome = '" + self.nome + "', cpf = '" + self.cpf + "', telefone = '" +
                 self.telefone + "', apartamento = '" + self.apartamento + "', visitante = '" + self.visitante +
-                "' where idproprietario = " + str(self.idproprietario) + " ")
+                "' where id = " + str(self.idproprietario) + " ")
 
             banco.conexao.commit()
             c.close()
@@ -87,7 +87,7 @@ class Proprietario:
 
             c = banco.conexao.cursor()
 
-            c.execute("select * from proprietarios where idproprietario = " +  str(idproprietario) + "  ")
+            c.execute("select * from proprietarios where id = " + str(idproprietario) + "  ")
 
             for linha in c:
                 self.idproprietario = linha[0]

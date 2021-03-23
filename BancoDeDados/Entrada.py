@@ -44,7 +44,7 @@ class Entrada(object):
             c.execute(
                 "update entradas set data_hora = '" + self.data_hora + "', proprietario = '" + self.proprietario +
                 "', veiculo = '" + self.veiculo + "', visitante = '" + self.visitante + "', placa = '" + self.placa +
-                "' where idEntrada = " + str(self.idEntrada) + " ")
+                "' where id = " + str(self.idEntrada) + " ")
 
             banco.conexao.commit()
             c.close()
@@ -54,7 +54,7 @@ class Entrada(object):
         except:
             return "Ocorreu um erro na alteração da entrada..."
 
-    def deletar(self):
+    def deletar(self, id):
 
         banco = BDEntrada()
 
@@ -62,7 +62,7 @@ class Entrada(object):
 
             c = banco.conexao.cursor()
 
-            c.execute("delete from entradas where idEntrada = " + str(self.idEntrada) + " ")
+            c.execute("delete from entradas where id = " + id + " ")
             banco.conexao.commit()
             c.close()
 
@@ -79,7 +79,7 @@ class Entrada(object):
 
             c = banco.conexao.cursor()
 
-            c.execute("select * from entradas where idEntrada = " + str(idEntrada) + "  ")
+            c.execute("select * from entradas where id = " + str(idEntrada) + "  ")
 
             for linha in c:
                 self.idEntrada = linha[0]
@@ -104,7 +104,7 @@ class Entrada(object):
 
             c = banco.conexao.cursor()
 
-            c.execute("select * from entradas order by id")
+            c.execute("select * from entradas order by id desc")
 
             todas_entradas = []
             for linha in c:

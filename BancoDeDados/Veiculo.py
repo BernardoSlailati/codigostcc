@@ -46,7 +46,7 @@ class Veiculo(object):
             c.execute(
                 "update veiculos set tipo = '" + self.tipo + "', cor = '" + self.cor + "', marca = '" + self.marca +
                 "', modelo = '" + self.modelo + "', ano = '" + self.ano + "', placa = '" + self.placa +
-                "', cpf_proprietario = '" + self.cpf_proprietario + "' where idveiculo = " + str(self.idveiculo) + " ")
+                "', cpf_proprietario = '" + self.cpf_proprietario + "' where id = " + str(self.idveiculo) + " ")
 
             banco.conexao.commit()
             c.close()
@@ -78,7 +78,7 @@ class Veiculo(object):
 
             c = banco.conexao.cursor()
 
-            c.execute("select * from veiculos where idveiculo = " + str(idveiculo) + "  ")
+            c.execute("select * from veiculos where id = " + str(idveiculo) + "  ")
 
             for linha in c:
                 self.idveiculo = linha[0]

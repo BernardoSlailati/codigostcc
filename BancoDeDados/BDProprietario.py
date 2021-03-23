@@ -9,6 +9,7 @@ class BDProprietario:
 
         try:
             self.conexao = sqlite3.connect(r"..\BancoDeDados\gerencial.db")
+
         except Error as e:
             print(e)
 
