@@ -13,6 +13,7 @@ import numpy as np
 IMAGENS_DIR = "imagensTeste/"
 RESULTADOS_DIR = "resultadosPreprocessamento/"
 
+
 # Classe PreProcessamento
 class PreProcessamento(object):
     # Construtor contendo como parâmetro o diretório da imagem a ser tratada
@@ -38,18 +39,18 @@ class PreProcessamento(object):
             cinza = cvtColor(original, COLOR_BGR2GRAY)
 
             # Aplicação do método de erosão na imagem em escala cinza
-            kernelErosao = np.ones((7, 7), np.uint8)
+            kernelErosao = np.ones((5, 5), np.uint8)
             erosao = erode(cinza, kernelErosao)
 
             # Aplicação do método de dilatação na imagem erodizada
             kernelDilatacao = np.ones((3, 3), np.uint8)
-            dilatacao = dilate(erosao, kernelDilatacao, iterations=5)
+            dilatacao = dilate(erosao, kernelDilatacao, iterations=3)
 
             # Aplicação do método de limiarização adaptativa na imagem
             # dilatada
             limiarizacao = adaptiveThreshold(dilatacao, 255,
                                              ADAPTIVE_THRESH_MEAN_C,
-                                             THRESH_BINARY, 41, 5)
+                                             THRESH_BINARY, 45, 7)
 
             # Variável contendo a imagem pré-processada
             preprocessada = limiarizacao
@@ -65,7 +66,7 @@ class PreProcessamento(object):
         # Aplicação do pré-processamento em todas as imagens
         # contidas na pasta 'imagensTeste', sendo salvas as
         # imagens resultantes na pasta
-        # 'resultadosIdentificacaoPlacas'
+        # 'placasIdentificadas'
         def preprocessarImagensTeste(diretorioImagensTeste):
             # Lista 'filenames' contendo os nomes de todos
             # os arquivos contidos na pasta 'imagensTeste'
@@ -79,7 +80,6 @@ class PreProcessamento(object):
                                      + filename).preprocessar()
                 imwrite(RESULTADOS_DIR + filename, preprocessada)
 
-
-pp = PreProcessamento(IMAGENS_DIR + "026.jpg")
-_, preprocessada = pp.preprocessar()
-imwrite(RESULTADOS_DIR + "026.jpg", preprocessada)
+# pp = PreProcessamento(IMAGENS_DIR + "100.jpg")
+# _, preprocessada = pp.preprocessar()
+# imwrite(RESULTADOS_DIR + "100.jpg", preprocessada)

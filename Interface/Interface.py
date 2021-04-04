@@ -4,14 +4,19 @@
 # principal do software a ser desenvolvido.
 
 # Importação das bibliotecas necessárias
-
-from BancoDeDados import Proprietario, Veiculo, Entrada
-from cv2 import *
-from PIL import Image, ImageTk
 from datetime import datetime
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from PIL import Image, ImageTk
+from BancoDeDados import Proprietario, Veiculo, Entrada
+from cv2 import *
+from PreProcessamento import PreProcessamento
+from IdentificacaoPlacas import IdentificaPlaca
+from PreProcessamentoCaracteres import PreProcessamentoCaracteres
+import pytesseract as pytess
+
+pytess.pytesseract.tesseract_cmd = 'C:/Program Files/Tesseract-OCR/tesseract.exe'
 
 
 class Interface:
@@ -864,8 +869,8 @@ class Interface:
 
         self.veiculosQuadroRegistros.column('#0', minwidth=20, width=50, stretch=NO, anchor=CENTER)
         self.veiculosQuadroRegistros.column('#1', minwidth=75, width=120, stretch=NO, anchor=CENTER)
-        self.veiculosQuadroRegistros.column('#2', minwidth=150, width=220, stretch=NO,  anchor=CENTER)
-        self.veiculosQuadroRegistros.column('#3', minwidth=150, width=220, stretch=NO,  anchor=CENTER)
+        self.veiculosQuadroRegistros.column('#2', minwidth=150, width=220, stretch=NO, anchor=CENTER)
+        self.veiculosQuadroRegistros.column('#3', minwidth=150, width=220, stretch=NO, anchor=CENTER)
         self.veiculosQuadroRegistros.column('#4', minwidth=75, width=120, stretch=NO, anchor=CENTER)
         self.veiculosQuadroRegistros.column('#5', minwidth=75, width=120, stretch=NO, anchor=CENTER)
         self.veiculosQuadroRegistros.column('#6', minwidth=75, width=120, stretch=NO, anchor=CENTER)
@@ -913,7 +918,6 @@ class Interface:
 
         self.proprietariosQuadroRegistros.delete(*self.proprietariosQuadroRegistros.get_children())
         for proprietario in resposta:
-
             self.proprietariosQuadroRegistros.insert('', END, text=str(proprietario.idproprietario),
                                                      values=(
                                                          proprietario.nome,
@@ -956,7 +960,7 @@ class Interface:
             self.registrosQuadroRegistros.insert('', END, text=entrada.idEntrada,
                                                  values=(
                                                      datetime.strftime(datetime.strptime(entrada.data_hora, "%Y-%m-%d "
-                                                                                         "%H:%M:%S.%f"),
+                                                                                                            "%H:%M:%S.%f"),
                                                                        "%Y-%m-%d %H:%M:%S"),
                                                      entrada.proprietario,
                                                      entrada.veiculo,
@@ -1234,6 +1238,38 @@ class Interface:
 
     # Função a ser criada, iniciada após o clique do botão 'Localizar'
     def localizar_placa(self):
+        cam = VideoCapture(0, CAP_DSHOW)  # 0 -> index of camera
+        s, img = cam.read()
+
+        if s:  # frame captured without any errors
+            # =========== Tirar foto com a câmera do NETEBOOK ou RASPBERRY =========
+            # namedWindow("cam-test", WINDOW_AUTOSIZE)
+            # imshow("cam-test", img)
+            # waitKey(0)
+            # destroyWindow("cam-test")
+            # imwrite("placa.jpg", img)  # save image
+
+            # =========== Identificar Placa em Imagem ===========
+            # original, preprocessada = PreProcessamento.PreProcessamento("identificarPlacas/105.jpg").preprocessar()
+            # # imwrite("placasIdentificadas/placa_preprocesada.jpg", preprocessada)
+            #
+            # areaContornos = IdentificaPlaca.IdentificaPlaca(original, preprocessada, "identifica-placa", 40000,
+            #                                                 9000000).desenharContornos()
+
+            (_, _, possiveisPlacasIdentificadas) = next(os.walk("placasIdentificadas"))
+            for possivelPlaca in possiveisPlacasIdentificadas:
+                # PreProcessamentoCaracteres.PreProcessamentoCaracteres("placasIdentificadas/" + possivelPlaca).preprocessar()
+                possivelPlaca = imread("placasIdentificadas/" + possivelPlaca)
+
+                PreProcessamentoCaracteres.PreProcessamentoCaracteres(possivelPlaca).preprocessar()
+                waitKey(0)
+                destroyAllWindows()
+
+            # caracteres = pytess.image_to_string(preprocessada, lang='eng', config='--oem 3 --psm 5')
+            #
+            # # Printar no terminal o nome do arquivo juntamente aos caracteres reconhecidos (ex. '001.jpg: SIA-0231')
+            # print(caracteres)
+
         placa = self.letras.get() + "-" + self.numeros.get()
         veiculo = Veiculo.Veiculo().pesquisar("Placa", placa)
 

@@ -18,7 +18,7 @@ except ImportError:
 # as pastas contendo as imagens utilizadas nos testes e resultados da
 # identificação das placas, respectivamente
 IMAGENS_DIR = "imagensPlacasTeste/"
-RESULTADOS_DIR = "resultadosIdentificacaoPlacas/"
+RESULTADOS_DIR = "placasIdentificadas/"
 
 # Lista 'filenames' contendo os nomes de todos
 # os arquivos contidos na pasta 'imagensPlacasTeste'
@@ -31,13 +31,12 @@ for filename in sorted(filenames):
     # um váriavel de texto contendo os caracteres concatenados
     placa = imread(IMAGENS_DIR + filename, CV_8UC1)
 
-    # placaProcessada = blur(placa, (9, 9), 3)
-    # placaProcessada = adaptiveThreshold(placaProcessada, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 75, 10)
-    #
-    # imshow("placaProcessada", placaProcessada)
-    # waitKey(0)
+    _, placaProcessada = threshold(placa, 100, 255, THRESH_BINARY)
 
-    caracteres = pytess.image_to_string(placa, lang='man')
+    imshow("placaProcessada", placaProcessada)
+    waitKey(0)
+
+    caracteres = pytess.image_to_string(placaProcessada, lang='eng', config='--oem 3 --psm 5')
 
     # Printar no terminal o nome do arquivo juntamente aos caracteres reconhecidos (ex. '001.jpg: SIA-0231')
     print(filename + ": " + caracteres)
