@@ -62,7 +62,7 @@ class Entrada(object):
 
             c = banco.conexao.cursor()
 
-            c.execute("delete from entradas where id = " + id + " ")
+            c.execute("delete from entradas where id = " + str(id))
             banco.conexao.commit()
             c.close()
 

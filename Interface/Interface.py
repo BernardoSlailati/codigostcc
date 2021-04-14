@@ -4,19 +4,23 @@
 # principal do software a ser desenvolvido.
 
 # Importação das bibliotecas necessárias
+import glob
+
 from datetime import datetime
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from PIL import Image, ImageTk
+
 from BancoDeDados import Proprietario, Veiculo, Entrada
 from cv2 import *
-from PreProcessamento import PreProcessamento
 from IdentificacaoPlacas import IdentificaPlaca
-from PreProcessamentoCaracteres import PreProcessamentoCaracteres
+from IdentificacaoCaracteres import IdentificaCaracteres
 import pytesseract as pytess
 
 pytess.pytesseract.tesseract_cmd = 'C:/Program Files/Tesseract-OCR/tesseract.exe'
+
+DEBUG = True
 
 
 class Interface:
@@ -902,6 +906,7 @@ class Interface:
 
                     if "sucesso" in resposta:
                         messagebox.showinfo("Sucesso", resposta)
+                        self.buscar_todas_entradas()
                     else:
                         messagebox.showerror("Falha ao deletar", resposta)
 
@@ -1238,150 +1243,297 @@ class Interface:
 
     # Função a ser criada, iniciada após o clique do botão 'Localizar'
     def localizar_placa(self):
-        cam = VideoCapture(0, CAP_DSHOW)  # 0 -> index of camera
-        s, img = cam.read()
+        if DEBUG:
+            caracteresPossivelPlaca = ""
 
-        if s:  # frame captured without any errors
-            # =========== Tirar foto com a câmera do NETEBOOK ou RASPBERRY =========
-            # namedWindow("cam-test", WINDOW_AUTOSIZE)
-            # imshow("cam-test", img)
-            # waitKey(0)
-            # destroyWindow("cam-test")
-            # imwrite("placa.jpg", img)  # save image
+            # Localizar AUTOMATICAMENTE placa através da imagem capturada
+            if len(self.letras.get()) == 0 and len(self.numeros.get()) == 0:
+                imgTeste = imread("capturasParaIdentificacao/teste2.jpg")
+                possiveisPlacasIdentificadas = IdentificaPlaca.IdentificaPlaca(imgTeste,
+                                                                               "teste",
+                                                                               5000,
+                                                                               100000).buscarPossiveisPlacas()
 
-            # =========== Identificar Placa em Imagem ===========
-            # original, preprocessada = PreProcessamento.PreProcessamento("identificarPlacas/105.jpg").preprocessar()
-            # # imwrite("placasIdentificadas/placa_preprocesada.jpg", preprocessada)
-            #
-            # areaContornos = IdentificaPlaca.IdentificaPlaca(original, preprocessada, "identifica-placa", 40000,
-            #                                                 9000000).desenharContornos()
+                print("Total Possíveis Placas Identificadas: " + str(len(possiveisPlacasIdentificadas)))
 
-            (_, _, possiveisPlacasIdentificadas) = next(os.walk("placasIdentificadas"))
-            for possivelPlaca in possiveisPlacasIdentificadas:
-                # PreProcessamentoCaracteres.PreProcessamentoCaracteres("placasIdentificadas/" + possivelPlaca).preprocessar()
-                possivelPlaca = imread("placasIdentificadas/" + possivelPlaca)
+                for i, possivelPlaca in enumerate(possiveisPlacasIdentificadas):
+                    identificacaoCorreta, caracteresPossivelPlaca = \
+                        IdentificaCaracteres.IdentificaCaracteres(possivelPlaca).identificarCaracteres()
 
-                PreProcessamentoCaracteres.PreProcessamentoCaracteres(possivelPlaca).preprocessar()
-                waitKey(0)
-                destroyAllWindows()
+                    # Deletar todas as imagens de possíveis placas (limpar imagens desnecessarias)
+                    files = glob.glob('possiveisPlacasIdentificadas/*')
+                    for file in files:
+                        os.remove(file)
 
-            # caracteres = pytess.image_to_string(preprocessada, lang='eng', config='--oem 3 --psm 5')
-            #
-            # # Printar no terminal o nome do arquivo juntamente aos caracteres reconhecidos (ex. '001.jpg: SIA-0231')
-            # print(caracteres)
+                    if identificacaoCorreta:
+                        messagebox.showinfo("Sucesso", "Caracteres identificados com sucesso! Placa: " +
+                                            caracteresPossivelPlaca)
+                        break
 
-        placa = self.letras.get() + "-" + self.numeros.get()
-        veiculo = Veiculo.Veiculo().pesquisar("Placa", placa)
-
-        if veiculo.idveiculo > 0:
-            proprietario = Proprietario.Proprietario().pesquisar("CPF", veiculo.cpf_proprietario)
-
-            # Preencher proprietário
-            self.cpf.config(state=NORMAL)
-            self.cpf.delete(0, END)
-            self.cpf.insert(0, proprietario.cpf)
-            self.cpf.config(state=DISABLED)
-
-            self.nome.config(state=NORMAL)
-            self.nome.delete(0, END)
-            self.nome.insert(0, proprietario.nome)
-            self.nome.config(state=DISABLED)
-
-            self.telefone.config(state=NORMAL)
-            self.telefone.delete(0, END)
-            self.telefone.insert(0, proprietario.telefone)
-            self.telefone.config(state=DISABLED)
-
-            self.apartamento.config(state=NORMAL)
-            self.apartamento.delete(0, END)
-            self.apartamento.insert(0, proprietario.apartamento)
-            self.apartamento.config(state=DISABLED)
-
-            self.naoVisitante.config(state=NORMAL)
-            self.simVisitante.config(state=NORMAL)
-            if proprietario.visitante == "SIM":
-                self.visitante.set(1)
-            elif proprietario.visitante == "NÃO":
-                self.visitante.set(0)
-            self.naoVisitante.config(state=DISABLED)
-            self.simVisitante.config(state=DISABLED)
-
-            # Preencher proprietário
-            self.cpf.config(state=NORMAL)
-            self.cpf.delete(0, END)
-            self.cpf.insert(0, proprietario.cpf)
-            self.cpf.config(state=DISABLED)
-
-            self.nome.config(state=NORMAL)
-            self.nome.delete(0, END)
-            self.nome.insert(0, proprietario.nome)
-            self.nome.config(state=DISABLED)
-
-            self.telefone.config(state=NORMAL)
-            self.telefone.delete(0, END)
-            self.telefone.insert(0, proprietario.telefone)
-            self.telefone.config(state=DISABLED)
-
-            self.apartamento.config(state=NORMAL)
-            self.apartamento.delete(0, END)
-            self.apartamento.insert(0, proprietario.apartamento)
-            self.apartamento.config(state=DISABLED)
-
-            if proprietario.visitante == "SIM":
-                self.visitante.set(1)
-            elif proprietario.visitante == "NÃO":
-                self.visitante.set(0)
-
-            # Preencher veículo
-            self.tipo.config(state=NORMAL)
-            self.tipo.delete(0, END)
-            self.tipo.insert(0, veiculo.tipo)
-            self.tipo.config(state=DISABLED)
-
-            self.cor.config(state=NORMAL)
-            self.cor.delete(0, END)
-            self.cor.insert(0, veiculo.cor)
-            self.cor.config(state=DISABLED)
-
-            self.marca.config(state=NORMAL)
-            self.marca.delete(0, END)
-            self.marca.insert(0, veiculo.marca)
-            self.marca.config(state=DISABLED)
-
-            self.modelo.config(state=NORMAL)
-            self.modelo.delete(0, END)
-            self.modelo.insert(0, veiculo.modelo)
-            self.modelo.config(state=DISABLED)
-
-            self.ano.config(state=NORMAL)
-            self.ano.delete(0, END)
-            self.ano.insert(0, veiculo.ano)
-            self.ano.config(state=DISABLED)
-
-            self.placa.config(state=NORMAL)
-            self.placa.delete(0, END)
-            self.placa.insert(0, veiculo.placa)
-            self.placa.config(state=DISABLED)
-
-            cadastrar_entrada = messagebox.askyesno("Veículo Encontrado!", "Deseja inserir entrada?")
-            if cadastrar_entrada:
-                entrada = Entrada.Entrada(
-                    0,
-                    str(datetime.now()),
-                    proprietario.nome + ", " + proprietario.cpf,
-                    veiculo.marca + " " + veiculo.modelo + ", " + veiculo.cor,
-                    proprietario.visitante,
-                    veiculo.placa
-                )
-                entrada.inserir()
-
-                self.buscar_todas_entradas()
-
-                messagebox.showinfo("Sucesso", "Entrada cadastrada.")
+            # Localizar MANUALMENTE placa através da inserção do usuário
+            elif len(self.letras.get()) != 3 and len(self.numeros.get()) != 4:
+                messagebox.showwarning("Placa Inválida", "Informe um padrão de placa válido (e.x: XXX-0000).")
+                return
             else:
-                messagebox.showerror("Cancelado", "Entrada não cadastrada.")
-        else:
-            messagebox.showerror("Veículo não encontrado", "Placa '" + placa + "' não está vinculada a nenhum veículo.")
+                caracteresPossivelPlaca = self.letras.get() + "-" + self.numeros.get()
+
+            veiculo = Veiculo.Veiculo().pesquisar("Placa", caracteresPossivelPlaca)
+
+            if veiculo.idveiculo > 0:
+                proprietario = Proprietario.Proprietario().pesquisar("CPF", veiculo.cpf_proprietario)
+
+                # Preencher proprietário
+                self.cpf.config(state=NORMAL)
+                self.cpf.delete(0, END)
+                self.cpf.insert(0, proprietario.cpf)
+                self.cpf.config(state=DISABLED)
+
+                self.nome.config(state=NORMAL)
+                self.nome.delete(0, END)
+                self.nome.insert(0, proprietario.nome)
+                self.nome.config(state=DISABLED)
+
+                self.telefone.config(state=NORMAL)
+                self.telefone.delete(0, END)
+                self.telefone.insert(0, proprietario.telefone)
+                self.telefone.config(state=DISABLED)
+
+                self.apartamento.config(state=NORMAL)
+                self.apartamento.delete(0, END)
+                self.apartamento.insert(0, proprietario.apartamento)
+                self.apartamento.config(state=DISABLED)
+
+                self.naoVisitante.config(state=NORMAL)
+                self.simVisitante.config(state=NORMAL)
+                if proprietario.visitante == "SIM":
+                    self.visitante.set(1)
+                elif proprietario.visitante == "NÃO":
+                    self.visitante.set(0)
+                self.naoVisitante.config(state=DISABLED)
+                self.simVisitante.config(state=DISABLED)
+
+                # Preencher proprietário
+                self.cpf.config(state=NORMAL)
+                self.cpf.delete(0, END)
+                self.cpf.insert(0, proprietario.cpf)
+                self.cpf.config(state=DISABLED)
+
+                self.nome.config(state=NORMAL)
+                self.nome.delete(0, END)
+                self.nome.insert(0, proprietario.nome)
+                self.nome.config(state=DISABLED)
+
+                self.telefone.config(state=NORMAL)
+                self.telefone.delete(0, END)
+                self.telefone.insert(0, proprietario.telefone)
+                self.telefone.config(state=DISABLED)
+
+                self.apartamento.config(state=NORMAL)
+                self.apartamento.delete(0, END)
+                self.apartamento.insert(0, proprietario.apartamento)
+                self.apartamento.config(state=DISABLED)
+
+                if proprietario.visitante == "SIM":
+                    self.visitante.set(1)
+                elif proprietario.visitante == "NÃO":
+                    self.visitante.set(0)
+
+                # Preencher veículo
+                self.tipo.config(state=NORMAL)
+                self.tipo.delete(0, END)
+                self.tipo.insert(0, veiculo.tipo)
+                self.tipo.config(state=DISABLED)
+
+                self.cor.config(state=NORMAL)
+                self.cor.delete(0, END)
+                self.cor.insert(0, veiculo.cor)
+                self.cor.config(state=DISABLED)
+
+                self.marca.config(state=NORMAL)
+                self.marca.delete(0, END)
+                self.marca.insert(0, veiculo.marca)
+                self.marca.config(state=DISABLED)
+
+                self.modelo.config(state=NORMAL)
+                self.modelo.delete(0, END)
+                self.modelo.insert(0, veiculo.modelo)
+                self.modelo.config(state=DISABLED)
+
+                self.ano.config(state=NORMAL)
+                self.ano.delete(0, END)
+                self.ano.insert(0, veiculo.ano)
+                self.ano.config(state=DISABLED)
+
+                self.placa.config(state=NORMAL)
+                self.placa.delete(0, END)
+                self.placa.insert(0, veiculo.placa)
+                self.placa.config(state=DISABLED)
+
+                cadastrar_entrada = messagebox.askyesno("Veículo Encontrado!", "Deseja inserir entrada?")
+                if cadastrar_entrada:
+                    entrada = Entrada.Entrada(
+                        0,
+                        str(datetime.now()),
+                        proprietario.nome + ", " + proprietario.cpf,
+                        veiculo.marca + " " + veiculo.modelo + ", " + veiculo.cor,
+                        proprietario.visitante,
+                        veiculo.placa
+                    )
+                    entrada.inserir()
+
+                    self.buscar_todas_entradas()
+
+                    messagebox.showinfo("Sucesso", "Entrada cadastrada.")
+                else:
+                    messagebox.showerror("Cancelado", "Entrada não cadastrada.")
+            else:
+                messagebox.showerror("Veículo não encontrado", "Placa '" + caracteresPossivelPlaca + "' não está vinculada a nenhum veículo.")
+
+        # else:
+            # cam = VideoCapture(0, CAP_DSHOW)  # 0 -> index of camera
+            # s, img = cam.read()
+            #
+            # if s:  # frame captured without any errors
+            #     # =========== Tirar foto com a câmera do NETEBOOK ou RASPBERRY =========
+            #     # namedWindow("cam-test", WINDOW_AUTOSIZE)
+            #     # imshow("cam-test", img)
+            #     # waitKey(0)
+            #     # destroyWindow("cam-test")
+            #     # imwrite("placa.jpg", img)  # save image
+            #
+            #     # =========== Identificar Placa em Imagem ===========
+            #     # original, preprocessada = PreProcessamentoPlacas.PreProcessamentoPlacas("identificarPlacas/105.jpg").preprocessar()
+            #     # # imwrite("possiveisPlacasIdentificadas/placa_preprocesada.jpg", preprocessada)
+            #     #
+            #     # areaContornos = IdentificaPlaca.IdentificaPlaca(original, preprocessada, "identifica-placa", 40000,
+            #     #                                                 9000000).desenharContornos()
+            #
+            #     (_, _, possiveisPlacasIdentificadas) = next(os.walk("possiveisPlacasIdentificadas"))
+            #     for possivelPlaca in possiveisPlacasIdentificadas:
+            #         # PreProcessamentoCaracteres.PreProcessamentoCaracteres("possiveisPlacasIdentificadas/" + possivelPlaca).preprocessar()
+            #         possivelPlaca = imread("possiveisPlacasIdentificadas/" + possivelPlaca)
+            #
+            #         PreProcessamentoCaracteres.PreProcessamentoCaracteres(possivelPlaca).preprocessar()
+            #         waitKey(0)
+            #         destroyAllWindows()
+            #
+            #     # caracteres = pytess.image_to_string(preprocessada, lang='eng', config='--oem 3 --psm 5')
+            #     #
+            #     # # Printar no terminal o nome do arquivo juntamente aos caracteres reconhecidos (ex. '001.jpg: SIA-0231')
+            #     # print(caracteres)
+            #
+            # placa = self.letras.get() + "-" + self.numeros.get()
+            # veiculo = Veiculo.Veiculo().pesquisar("Placa", placa)
+            #
+            # if veiculo.idveiculo > 0:
+            #     proprietario = Proprietario.Proprietario().pesquisar("CPF", veiculo.cpf_proprietario)
+            #
+            #     # Preencher proprietário
+            #     self.cpf.config(state=NORMAL)
+            #     self.cpf.delete(0, END)
+            #     self.cpf.insert(0, proprietario.cpf)
+            #     self.cpf.config(state=DISABLED)
+            #
+            #     self.nome.config(state=NORMAL)
+            #     self.nome.delete(0, END)
+            #     self.nome.insert(0, proprietario.nome)
+            #     self.nome.config(state=DISABLED)
+            #
+            #     self.telefone.config(state=NORMAL)
+            #     self.telefone.delete(0, END)
+            #     self.telefone.insert(0, proprietario.telefone)
+            #     self.telefone.config(state=DISABLED)
+            #
+            #     self.apartamento.config(state=NORMAL)
+            #     self.apartamento.delete(0, END)
+            #     self.apartamento.insert(0, proprietario.apartamento)
+            #     self.apartamento.config(state=DISABLED)
+            #
+            #     self.naoVisitante.config(state=NORMAL)
+            #     self.simVisitante.config(state=NORMAL)
+            #     if proprietario.visitante == "SIM":
+            #         self.visitante.set(1)
+            #     elif proprietario.visitante == "NÃO":
+            #         self.visitante.set(0)
+            #     self.naoVisitante.config(state=DISABLED)
+            #     self.simVisitante.config(state=DISABLED)
+            #
+            #     # Preencher proprietário
+            #     self.cpf.config(state=NORMAL)
+            #     self.cpf.delete(0, END)
+            #     self.cpf.insert(0, proprietario.cpf)
+            #     self.cpf.config(state=DISABLED)
+            #
+            #     self.nome.config(state=NORMAL)
+            #     self.nome.delete(0, END)
+            #     self.nome.insert(0, proprietario.nome)
+            #     self.nome.config(state=DISABLED)
+            #
+            #     self.telefone.config(state=NORMAL)
+            #     self.telefone.delete(0, END)
+            #     self.telefone.insert(0, proprietario.telefone)
+            #     self.telefone.config(state=DISABLED)
+            #
+            #     self.apartamento.config(state=NORMAL)
+            #     self.apartamento.delete(0, END)
+            #     self.apartamento.insert(0, proprietario.apartamento)
+            #     self.apartamento.config(state=DISABLED)
+            #
+            #     if proprietario.visitante == "SIM":
+            #         self.visitante.set(1)
+            #     elif proprietario.visitante == "NÃO":
+            #         self.visitante.set(0)
+            #
+            #     # Preencher veículo
+            #     self.tipo.config(state=NORMAL)
+            #     self.tipo.delete(0, END)
+            #     self.tipo.insert(0, veiculo.tipo)
+            #     self.tipo.config(state=DISABLED)
+            #
+            #     self.cor.config(state=NORMAL)
+            #     self.cor.delete(0, END)
+            #     self.cor.insert(0, veiculo.cor)
+            #     self.cor.config(state=DISABLED)
+            #
+            #     self.marca.config(state=NORMAL)
+            #     self.marca.delete(0, END)
+            #     self.marca.insert(0, veiculo.marca)
+            #     self.marca.config(state=DISABLED)
+            #
+            #     self.modelo.config(state=NORMAL)
+            #     self.modelo.delete(0, END)
+            #     self.modelo.insert(0, veiculo.modelo)
+            #     self.modelo.config(state=DISABLED)
+            #
+            #     self.ano.config(state=NORMAL)
+            #     self.ano.delete(0, END)
+            #     self.ano.insert(0, veiculo.ano)
+            #     self.ano.config(state=DISABLED)
+            #
+            #     self.placa.config(state=NORMAL)
+            #     self.placa.delete(0, END)
+            #     self.placa.insert(0, veiculo.placa)
+            #     self.placa.config(state=DISABLED)
+            #
+            #     cadastrar_entrada = messagebox.askyesno("Veículo Encontrado!", "Deseja inserir entrada?")
+            #     if cadastrar_entrada:
+            #         entrada = Entrada.Entrada(
+            #             0,
+            #             str(datetime.now()),
+            #             proprietario.nome + ", " + proprietario.cpf,
+            #             veiculo.marca + " " + veiculo.modelo + ", " + veiculo.cor,
+            #             proprietario.visitante,
+            #             veiculo.placa
+            #         )
+            #         entrada.inserir()
+            #
+            #         self.buscar_todas_entradas()
+            #
+            #         messagebox.showinfo("Sucesso", "Entrada cadastrada.")
+            #     else:
+            #         messagebox.showerror("Cancelado", "Entrada não cadastrada.")
+            # else:
+            #     messagebox.showerror("Veículo não encontrado", "Placa '" + placa + "' não está vinculada a nenhum veículo.")
 
 
 # Inicialização da interface gráfica principal da janela desenvolvida
